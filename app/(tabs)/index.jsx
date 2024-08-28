@@ -18,7 +18,7 @@ export default function TabOne() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/register', {
+      const response = await fetch('https://select-antelope-perfectly.ngrok-free.app/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

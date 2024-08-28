@@ -14,12 +14,11 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: useClientOnlyValue(false, true),
+        headerShown: false, // This will hide the header (title) for all screens
       }}>
       <Tabs.Screen
         name="main"
         options={{
-          title: 'Tab One',
           headerRight: () => (
             <Link href="/modal" asChild>
               <Pressable>
@@ -38,21 +37,15 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="profile"
-        options={{
-          title: 'Tab Two',
-        }}
+        options={{}}
       />
       <Tabs.Screen
         name="setting"
-        options={{
-          title: 'Tab Three',
-        }}
+        options={{}}
       />
       <Tabs.Screen
         name="chats"
-        options={{
-          title: 'Tab Four',
-        }}
+        options={{}}
       />
     </Tabs>
   );

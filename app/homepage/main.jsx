@@ -1,12 +1,19 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native';
+import { createStackNavigator } from '@react-navigation/stack';
 import SwipingPage from '../../components/SwipingPage';  
+
+const Stack = createStackNavigator();
 
 const App = () => {
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <SwipingPage />
-    </SafeAreaView>
+    <Stack.Navigator>
+      <Stack.Screen
+        name="SwipingPage"
+        component={SwipingPage}
+        options={{ headerShown: false }} // Hide the header
+      />
+    </Stack.Navigator>
   );
 };
 
