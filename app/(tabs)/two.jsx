@@ -73,7 +73,8 @@ function TabTwoScreen() {
         }
 
         Alert.alert('Success', data.msg || 'Login successful!');
-        navigation.navigate('Main');
+        router.navigate('homepage');
+        navigation.navigate('/homepage');
       } else {
         Alert.alert('Error', data.msg || 'Login failed. Please try again.');
       }
@@ -121,7 +122,7 @@ function TabTwoScreen() {
         </TouchableOpacity>
 
         {/* MainButton that navigates to MainScreen */}
-        <Button title="Go to Main" onPress={() => router.push('/homepage')} />
+        <Button title="Go to Main" onPress={() => router.navigate('/homepage')} />
       </ScrollView>
     </SafeAreaView>
   );
