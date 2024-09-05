@@ -1,22 +1,26 @@
 import React, { useState } from 'react';
 import { StyleSheet, TextInput, Button, Alert } from 'react-native';
 import { Text, View } from '@/components/Themed';
+import * as SecureStore from 'expo-secure-store'; // Import SecureStore
+import { useRouter } from 'expo-router';
 
 export default function TabOne() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const router = useRouter();
+
 
   const handleSignup = async () => {
     // Clear any previous alerts
     Alert.alert('Signing Up...', 'Please wait while we register you.');
-
+  
     // Validate input
     if (!username || !email || !password) {
       Alert.alert('Error', 'All fields are required.');
       return;
     }
-
+  
     try {
       const response = await fetch('https://select-antelope-perfectly.ngrok-free.app/register', {
         method: 'POST',
@@ -25,11 +29,20 @@ export default function TabOne() {
         },
         body: JSON.stringify({ username, email, password }),
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         Alert.alert('Success', data.msg || 'Registration successful!');
+  
+        // Assuming the server returns a token in the response
+        const token = data.token;
+  
+        if (token) {
+          // Save the token securely using expo-secure-store
+          await SecureStore.setItemAsync('userToken', token);
+          console.log('Token saved successfully:', token);
+        }
       } else {
         Alert.alert('Error', data.msg || 'Registration failed. Please try again.');
       }
@@ -67,9 +80,6 @@ export default function TabOne() {
       />
 
       <Button title="Sign Up" onPress={handleSignup} />
-
-      {/* Uncomment if needed for editing screen info */}
-      {/* <EditScreenInfo path="app/(tabs)/two.tsx" /> */}
     </View>
   );
 }

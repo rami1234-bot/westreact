@@ -1,14 +1,34 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, Alert } from 'react-native';
 import Swiper from 'react-native-deck-swiper';
+import * as SecureStore from 'expo-secure-store';
 
 const SwipingPage = () => {
   const [cards, setCards] = useState([
     { id: 1, text: 'Card 1' },
     { id: 2, text: 'Card 2' },
     { id: 3, text: 'Card 3' },
-  
   ]);
+
+  // Function to retrieve the token from secure storage
+  const retrieveToken = async () => {
+    try {
+      const token = await SecureStore.getItemAsync('userToken');
+      if (token) {
+        // Display the token in an alert
+        Alert.alert('Token Retrieved', `Your token is: ${token}`);
+      } else {
+        Alert.alert('No Token Found', 'Token not found in secure storage.');
+      }
+    } catch (error) {
+      console.error('Error retrieving token:', error);
+    }
+  };
+
+  // Fetch the token when the component is loaded
+  useEffect(() => {
+    retrieveToken();
+  }, []);
 
   const onSwipedLeft = (cardIndex) => {
     console.log(`Swiped left on card ${cardIndex}`);

@@ -1,42 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, TextInput, Button, Alert, View, Text, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
-import MainScreen from '../homepage/main'; // Adjust the path to your MainScreen component
+import React, { useState } from 'react';
+import { StyleSheet, TextInput, Button, Alert } from 'react-native';
+import { Text, View } from '@/components/Themed';
+import * as SecureStore from 'expo-secure-store';
+import { useNavigation } from '@react-navigation/native'; // Import navigation hook
+import Main from '../homepage/main'; 
+
+
 import { useRouter } from 'expo-router';
-
-const Stack = createStackNavigator();
-
-function TabTwoScreen() {
-  const [identifier, setIdentifier] = useState(''); // Changed to identifier
+export default function SignIn() {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false); // State for remember me
-  const navigation = useNavigation();
+  const [isSignedIn, setIsSignedIn] = useState(false); // Track if user is signed in
+
+  const navigation = useNavigation(); // Initialize navigation
   const router = useRouter();
+  const handleSignin = async () => {
+    Alert.alert('Signing In...', 'Please wait while we log you in.');
 
-  // Effect to load saved credentials
-  useEffect(() => {
-    const loadCredentials = async () => {
-      const savedIdentifier = await AsyncStorage.getItem('userIdentifier'); // Changed to userIdentifier
-      const savedPassword = await AsyncStorage.getItem('userPassword');
-      const savedRememberMe = await AsyncStorage.getItem('rememberMe');
-
-      if (savedRememberMe === 'true') {
-        setIdentifier(savedIdentifier || '');
-        setPassword(savedPassword || '');
-        setRememberMe(true);
-      }
-    };
-
-    loadCredentials();
-  }, []);
-
-  const handleLogin = async () => {
-    Alert.alert('Logging In...', 'Please wait while we log you in.');
-
-    if (!identifier || !password) {
-      Alert.alert('Error', 'Both fields are required.');
+    if (!email || !password) {
+      Alert.alert('Error', 'Both email and password are required.');
       return;
     }
 
@@ -46,35 +28,22 @@ function TabTwoScreen() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ identifier, password }), // Use identifier instead of email
+        body: JSON.stringify({ email, password }),
       });
 
-      // Check if the response is OK
-      if (!response.ok) {
-        const text = await response.text(); // Get the response as text for debugging
-        console.error('Error response:', text);
-        Alert.alert('Error', 'Login failed. Please check your credentials or try again later.');
-        return;
-      }
+      const data = await response.json();
 
-      const data = await response.json(); // Now safely parse as JSON
+      if (response.ok) {
+        Alert.alert('Success', data.msg || 'Login successful!');
 
-      // Continue with success logic
-      if (data.access_token) { // Check for access_token instead of data.success
-        // Save credentials if "Remember Me" is checked
-        if (rememberMe) {
-          await AsyncStorage.setItem('userIdentifier', identifier); // Save as userIdentifier
-          await AsyncStorage.setItem('userPassword', password);
-          await AsyncStorage.setItem('rememberMe', 'true');
-        } else {
-          await AsyncStorage.removeItem('userIdentifier'); // Remove if not remembering
-          await AsyncStorage.removeItem('userPassword');
-          await AsyncStorage.setItem('rememberMe', 'false');
+        const token = data.token;
+
+        if (token) {
+          await SecureStore.setItemAsync('userToken', token);
+          console.log('Token saved successfully:', token);
         }
 
-        Alert.alert('Success', data.msg || 'Login successful!');
-        router.navigate('homepage');
-        navigation.navigate('/homepage');
+        setIsSignedIn(true); // Set signed-in state to true after successful login
       } else {
         Alert.alert('Error', data.msg || 'Login failed. Please try again.');
       }
@@ -84,70 +53,56 @@ function TabTwoScreen() {
     }
   };
 
-  const toggleRememberMe = () => {
-    setRememberMe(!rememberMe);
+  const handleGoToMain = () => {
+
+
+    const startTime = performance.now(); // Start timing
+     SecureStore.setItemAsync('userToken', "token");
+    const endTime = performance.now(); // End timing
+
+    const timeTaken = endTime - startTime; // Calculate the time taken
+
+    console.log(`Time taken to set token: ${timeTaken.toFixed(2)} ms`); // Log the time taken
+    //SecureStore.setItemAsync('userToken', "hello");
+     router.navigate('homepage');
+ //   navigation.navigate('/homepage');
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <Text style={styles.title}>Sign In</Text>
-        <View style={styles.separator} />
+    <View style={styles.container}>
+      <Text style={styles.title}>Sign In</Text>
+      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Username or Email" // Updated placeholder
-          value={identifier} // Use identifier state
-          onChangeText={setIdentifier} // Set identifier on change
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-
-        {/* Remember Me Checkbox */}
-        <TouchableOpacity style={styles.checkboxContainer} onPress={toggleRememberMe}>
-          <View style={styles.checkbox}>
-            {rememberMe && <View style={styles.checkboxTick} />}
-          </View>
-          <Text style={styles.label}>Remember Me</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.submitButton} onPress={handleLogin}>
-          <Text style={styles.submitButtonText}>Sign In</Text>
-        </TouchableOpacity>
-
-        {/* MainButton that navigates to MainScreen */}
-        <Button title="Go to Main" onPress={() => router.navigate('/homepage')} />
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-export default function AppNavigator() {
-  return (
-    <Stack.Navigator initialRouteName="TabTwo">
-      <Stack.Screen
-        name="TabTwo"
-        component={TabTwoScreen}
-        options={{ headerShown: false }} // Hide the header
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
       />
-      <Stack.Screen
-        name="Main"
-        component={MainScreen}
-        options={{ headerTitle: '' }} // Hide the header title
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
       />
-    </Stack.Navigator>
+
+      <Button title="Sign In" onPress={handleSignin} />
+
+      
+        <Button title="Go to Main" onPress={handleGoToMain} />
+      
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 16,
   },
   title: {
@@ -167,39 +122,5 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingHorizontal: 10,
     width: '80%',
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderWidth: 2,
-    borderColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  checkboxTick: {
-    width: 12,
-    height: 12,
-    backgroundColor: '#007AFF',
-  },
-  label: {
-    marginLeft: 8,
-  },
-  submitButton: {
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  submitButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });
