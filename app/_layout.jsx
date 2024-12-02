@@ -8,13 +8,12 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
 
+// Exporting ErrorBoundary for error handling in the navigation tree.
 export {
-  // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: '(tabs)',
 };
 
@@ -27,17 +26,19 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
+  // Handle any errors in loading fonts.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
 
+  // Hide the splash screen when fonts are loaded.
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
 
+  // Return null while fonts are loading.
   if (!loaded) {
     return null;
   }
@@ -51,8 +52,15 @@ function RootLayoutNav() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen 
+          name="(tabs)" 
+          options={{ headerShown: false  }} // Hide header for Homepage
+        />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        <Stack.Screen 
+          name="homepage" 
+          options={{ headerShown: false  }} // Hide header for Homepage
+        />
       </Stack>
     </ThemeProvider>
   );
