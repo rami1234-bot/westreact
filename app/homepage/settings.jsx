@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { StyleSheet, Button, Alert, Switch, ScrollView, Modal, TextInput, View as RNView } from 'react-native';
 import { Text } from '@/components/Themed';
-import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { db } from '../../firebase'; // Adjust this import based on your Firebase configuration
 import { ref, set, remove } from 'firebase/database'; // Import necessary Firebase functions
 import { getAuth, deleteUser } from 'firebase/auth'; // Import necessary Firebase Authentication functions
 
+import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
+
 export default function SettingsScreen() {
-  const navigation = useNavigation();
+  
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(true);
   const [isLocationSharingEnabled, setIsLocationSharingEnabled] = useState(true);
   const [isDarkModeEnabled, setIsDarkModeEnabled] = useState(false);
@@ -28,47 +30,52 @@ export default function SettingsScreen() {
     Alert.alert('Change Password', 'Change your account password here.');
   };
 
-  const handleDeleteAccount = async () => {
-    Alert.alert(
-      'Delete Account',
-      'Are you sure you want to delete your account? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const auth = getAuth(); // Get the current authenticated user
-              const user = auth.currentUser;
-  
+const handleDeleteAccount = async () => {
+  Alert.alert(
+    'Delete Account',
+    'Are you sure you want to delete your account? This action cannot be undone.',
+    [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const auth = getAuth(); // Get the Firebase authentication instance
+            const user = auth.currentUser;
+
+            if (user) {
+              const userId = user.uid; // Get the user's unique ID
+
               // Step 1: Delete user data from Firebase Realtime Database
-              if (user) {
-                const userId = user.uid; // Get the user's UID
-                await remove(ref(db, 'users/' + userId)); // Adjust the path according to your database structure
-  
-                // Step 2: Delete user from Firebase Authentication
-                await deleteUser(user);
-  
-                Alert.alert('Account Deleted', 'Your account has been deleted successfully.');
-                
-                // Optionally, navigate to login screen or perform any other action after deletion
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: '(tabs)' }], // Ensure 'Login' is defined in your navigator
-                });
-              } else {
-                Alert.alert('Error', 'No user is currently logged in.');
-              }
-            } catch (error) {
-              Alert.alert('Error', 'An error occurred while deleting your account.');
-              console.error('Error:', error);
+              await remove(ref(db, `users/${userId}`)); // Adjust the path as per your database schema
+
+              // Step 2: Delete the user from Firebase Authentication
+              await deleteUser(user);
+
+              // Step 3: Clear user session data
+              await SecureStore.deleteItemAsync('userToken');
+              await SecureStore.setItemAsync('isLoggedIn', 'false');
+
+              Alert.alert('Account Deleted', 'Your account has been deleted successfully.');
+
+              // Navigate to the login screen or a landing page
+              router.replace('(tabs)');
+
+              console.log('Account deleted successfully.');
+            } else {
+              Alert.alert('Error', 'No user is currently logged in.');
             }
-          },
+          } catch (error) {
+            Alert.alert('Error', 'An error occurred while deleting your account.');
+            console.error('Error:', error);
+          }
         },
-      ]
-    );
-  };
+      },
+    ]
+  );
+};
+
 
   const handleLogout = async () => {
     Alert.alert(
@@ -80,13 +87,14 @@ export default function SettingsScreen() {
           text: 'Logout',
           onPress: async () => {
             try {
-              await AsyncStorage.removeItem('userToken');
-              await AsyncStorage.clear();
-
-              navigation.reset({
-                index: 0,
-                routes: [{ name: '(tabs)' }], // Ensure 'Login' is defined in your navigator
-              });
+              // Remove the user token and update the logged-in status
+              await SecureStore.deleteItemAsync('userToken');
+              await SecureStore.setItemAsync('isLoggedIn', 'false');
+  
+              // Reset navigation to go back to the login screen
+              router.replace('(tabs)');
+  
+              console.log('User logged out successfully.');
             } catch (error) {
               Alert.alert('Error', 'Failed to logout.');
               console.error('Logout Error:', error);
@@ -97,6 +105,8 @@ export default function SettingsScreen() {
       { cancelable: true }
     );
   };
+
+
 
   const handleContactUs = async () => {
     if (!username || !message) {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
 import { Text, View } from '@/components/Themed'; // Adjust this import according to your project structure
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'; // Firebase Authentication
@@ -10,8 +10,24 @@ export default function SignIn() {
   const [password, setPassword] = useState('');
   const router = useRouter();
 
+  useEffect(() => {
+    const checkLoggedIn = async () => {
+      try {
+        // Check if the userToken exists in SecureStore
+        const userToken = await SecureStore.getItemAsync('userToken');
+        if (userToken) {
+          console.log('User is already logged in:', userToken);
+          router.replace('homepage'); // Adjust the path to your home page
+        }
+      } catch (error) {
+        console.error('Error checking login status:', error);
+      }
+    };
+
+    checkLoggedIn();
+  }, []);
+
   const handleSignIn = async () => {
-    // Input validation
     if (!email || !password) {
       Alert.alert('Error', 'All fields are required.');
       return;
@@ -20,7 +36,6 @@ export default function SignIn() {
     const auth = getAuth();
 
     try {
-      // Sign in with email and password
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
@@ -28,7 +43,7 @@ export default function SignIn() {
       await SecureStore.setItemAsync('userToken', user.uid);
       console.log('User signed in successfully:', user.uid);
 
-      router.navigate('homepage'); // Adjust the path to your home page
+      router.replace('homepage'); // Navigate to the home page
     } catch (error) {
       Alert.alert('Error', error.message || 'Sign-in failed. Please try again.');
       console.error('Sign-in Error:', error);
@@ -37,22 +52,17 @@ export default function SignIn() {
 
   return (
     <View style={styles.container}>
-      {/* Add your logo image here */}
       <Image
         source={require('../../images/westimg.jpg')} // Adjust the path to your logo image
         style={styles.logo}
         resizeMode="contain"
       />
-      
-      {/* Add the Sign In text */}
       <Text style={styles.signInText}>Sign In</Text>
-
       <View style={styles.separator} />
-
       <TextInput
         style={styles.input}
         placeholder="Email"
-        placeholderTextColor="#FFFFFF" // White placeholder text
+        placeholderTextColor="#FFFFFF"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -61,12 +71,11 @@ export default function SignIn() {
       <TextInput
         style={styles.input}
         placeholder="Password"
-        placeholderTextColor="#FFFFFF" // White placeholder text
+        placeholderTextColor="#FFFFFF"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
-
       <TouchableOpacity style={styles.button} onPress={handleSignIn}>
         <Text style={styles.buttonText}>Sign In</Text>
       </TouchableOpacity>
@@ -78,45 +87,45 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-start', // Changed to flex-start to move everything to the top
-    backgroundColor: '#0E415E', // Dark blue background
+    justifyContent: 'flex-start',
+    backgroundColor: '#0E415E',
     padding: 16,
   },
   logo: {
-    width: 250, // Set width for the logo
-    height: 250, // Set height for the logo
-    marginBottom: -50, // Space between logo and title
+    width: 250,
+    height: 250,
+    marginBottom: -50,
   },
   signInText: {
-    fontSize: 24, // Font size for "Sign In"
-    color: '#FEAD1C', // Gold text color
-    marginBottom: 10, // Reduced space between "Sign In" and the separator
-    fontWeight: 'bold', // Bold text
+    fontSize: 24,
+    color: '#FEAD1C',
+    marginBottom: 10,
+    fontWeight: 'bold',
   },
   separator: {
-    marginVertical: 20, // Reduced vertical space for the separator
+    marginVertical: 20,
     height: 1,
     width: '80%',
-    backgroundColor: '#FFFFFF', // White separator line
+    backgroundColor: '#FFFFFF',
   },
   input: {
     height: 50,
-    borderColor: '#FEAD1C', // Gold border
+    borderColor: '#FEAD1C',
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 12,
     paddingHorizontal: 10,
     width: '80%',
-    color: '#FFFFFF', // White text input
+    color: '#FFFFFF',
   },
   button: {
-    backgroundColor: '#FEAD1C', // Gold button
+    backgroundColor: '#FEAD1C',
     borderRadius: 5,
     paddingVertical: 10,
     paddingHorizontal: 20,
   },
   buttonText: {
-    color: '#0E415E', // Dark blue text
+    color: '#0E415E',
     fontWeight: 'bold',
     textAlign: 'center',
   },

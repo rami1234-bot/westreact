@@ -18,7 +18,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: yellow, // Set active icon color to yellow
         tabBarStyle: {
           backgroundColor: darkBlue, // Set the entire tab bar background to dark blue
-          height: 70, // Set a taller fixed height for the tab bar
+          height: 80, // Set a taller fixed height for the tab bar (increased thickness)
           paddingBottom: 10, // Adjust bottom padding for better vertical positioning
         },
         headerShown: false, // Hide headers for all screens
@@ -27,14 +27,14 @@ export default function TabLayout() {
         name="main"
         options={{
           tabBarIcon: ({ size }) => (
-            <View style={{ 
-              backgroundColor: darkBlue, 
-              borderRadius: 25, 
+            <View style={{
+              backgroundColor: darkBlue,
+              borderRadius: 25,
               alignItems: 'center',
               justifyContent: 'center',
-              height: 50, // Maintain height for the icon
-              width: 50, // Maintain width for uniformity
-              marginTop: 5, // Move the icon up slightly
+              height: 50, // Icon size remains the same
+              width: 50, // Icon size remains the same
+              marginTop: 10, // Adjust the top margin to keep the icon vertically centered
             }}>
               <FontAwesome name="home" size={size} color={yellow} />
             </View>
@@ -59,14 +59,14 @@ export default function TabLayout() {
         name="checkpoints"
         options={{
           tabBarIcon: ({ size }) => (
-            <View style={{ 
-              backgroundColor: darkBlue, 
-              borderRadius: 25, 
+            <View style={{
+              backgroundColor: darkBlue,
+              borderRadius: 25,
               alignItems: 'center',
               justifyContent: 'center',
               height: 50,
               width: 50,
-              marginTop: 5, // Move the icon up slightly
+              marginTop: 10, // Adjust the top margin to keep the icon vertically centered
             }}>
               <FontAwesome name="map-marker" size={size} color={yellow} />
             </View>
@@ -77,14 +77,14 @@ export default function TabLayout() {
         name="map"
         options={{
           tabBarIcon: ({ size }) => (
-            <View style={{ 
-              backgroundColor: darkBlue, 
-              borderRadius: 25, 
+            <View style={{
+              backgroundColor: darkBlue,
+              borderRadius: 25,
               alignItems: 'center',
               justifyContent: 'center',
               height: 50,
               width: 50,
-              marginTop: 5, // Move the icon up slightly
+              marginTop: 10, // Adjust the top margin to keep the icon vertically centered
             }}>
               <FontAwesome name="globe" size={size} color={yellow} />
             </View>
@@ -95,14 +95,14 @@ export default function TabLayout() {
         name="settings"
         options={{
           tabBarIcon: ({ size }) => (
-            <View style={{ 
-              backgroundColor: darkBlue, 
-              borderRadius: 25, 
+            <View style={{
+              backgroundColor: darkBlue,
+              borderRadius: 25,
               alignItems: 'center',
               justifyContent: 'center',
               height: 50,
               width: 50,
-              marginTop: 5, // Move the icon up slightly
+              marginTop: 10, // Adjust the top margin to keep the icon vertically centered
             }}>
               <FontAwesome name="cog" size={size} color={yellow} />
             </View>
