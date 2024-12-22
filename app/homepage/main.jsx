@@ -6,7 +6,7 @@ import Geocoder from 'react-native-geocoding';
 import { getDatabase, ref, onValue } from 'firebase/database'; // Firebase imports
 import { firebaseApp } from '../../firebase'; // Firebase config import
 import axios from 'axios'; // Import axios to fetch traffic data
-
+import * as Location from 'expo-location'; // Import expo-location
 // Set up Google Maps API key
 Geocoder.init("AIzaSyAEh6UQ_XwrAed-7OdB8jmidJ7XmkO9lHI");
 
@@ -21,12 +21,35 @@ export default function MapScreen() {
   const [checkpoints, setCheckpoints] = useState([]);
   const [error, setError] = useState('');
   const mapRef = useRef(null); // Create a reference for the MapView
+  const [userLocation, setUserLocation] = useState(null); 
 
   // Fetch data from Firebase Realtime Database
   useEffect(() => {
     const db = getDatabase(firebaseApp);
     const checkpointsRef = ref(db, 'checkpoints');
 
+    const getLocation = async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync(); // Request permission
+
+      if (status === 'granted') {
+        const location = await Location.getCurrentPositionAsync({}); // Get current location
+        setUserLocation(location.coords); // Set the user's location
+        // Zoom into the user's location once it's available
+        if (mapRef.current) {
+          mapRef.current.animateToRegion({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            latitudeDelta: 0.04,
+            longitudeDelta: 0.05,
+          }, 1000); // Animate the zoom
+        }
+      } else {
+        Alert.alert('Permission Denied', 'Location permission is required to view your location.');
+      }
+    };
+
+    getLocation();
+  
     // Listen for data changes
     onValue(checkpointsRef, (snapshot) => {
       const data = snapshot.val();

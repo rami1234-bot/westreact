@@ -14,7 +14,7 @@ export {
 } from 'expo-router';
 
 export const unstable_settings = {
-  initialRouteName: '(tabs)',
+  initialRouteName: '(tabs)', // Ensure the tabs screen is the initial route
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -40,26 +40,32 @@ export default function RootLayout() {
 
   // Return null while fonts are loading.
   if (!loaded) {
-    return null;
+    return null; // Optionally, you can return a loader or splash screen here.
   }
 
   return <RootLayoutNav />;
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme(); // Get the current color scheme (light/dark)
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
-      <Stack.Screen 
+        {/* (tabs) screen */}
+        <Stack.Screen 
           name="(tabs)" 
-          options={{ headerShown: false  }} // Hide header for Homepage
+          options={{ headerShown: false }} // Hide header for the tabs screen
         />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        {/* Modal screen */}
+        <Stack.Screen 
+          name="modal" 
+          options={{ presentation: 'modal' }} // This makes the modal presentation style
+        />
+        {/* Homepage screen */}
         <Stack.Screen 
           name="homepage" 
-          options={{ headerShown: false  }} // Hide header for Homepage
+          options={{ headerShown: false }} // Hide header for the homepage screen
         />
       </Stack>
     </ThemeProvider>

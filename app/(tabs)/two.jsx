@@ -19,8 +19,20 @@ export default function SignUp() {
       return;
     }
 
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Error', 'Please enter a valid email address.');
+      return;
+    }
+
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match.');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long.');
       return;
     }
 
@@ -31,17 +43,20 @@ export default function SignUp() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // If successful, store the user token securely
+      // If successful, store the user token and refresh token securely
       const token = await user.getIdToken();
+      const refreshToken = user.refreshToken;
       await SecureStore.setItemAsync('userToken', token);
+      await SecureStore.setItemAsync('refreshToken', refreshToken);
 
       Alert.alert('Success', 'Registration successful!');
       console.log('User created:', user);
 
       // Navigate to the home page or another screen
-      router.navigate('homepage'); // Adjust the path to your home page
+      router.replace('homepage'); // Adjust the path to your home page
     } catch (error) {
-      Alert.alert('Error', error.message || 'Registration failed. Please try again.');
+      const errorMessage = error.message || 'Registration failed. Please try again.';
+      Alert.alert('Error', errorMessage);
       console.error('Error:', error);
     } finally {
       setLoading(false); // Set loading to false after the attempt
@@ -56,7 +71,7 @@ export default function SignUp() {
         style={styles.logo}
         resizeMode="contain"
       />
-      
+
       <Text style={styles.title}>Sign Up</Text>
       <View style={styles.separator} />
 
@@ -79,7 +94,7 @@ export default function SignUp() {
         onChangeText={setPassword}
         secureTextEntry
         accessibilityLabel="Password Input"
-        accessibilityHint="Enter your password"
+        accessibilityHint="Enter your password (minimum 6 characters)"
       />
       <TextInput
         style={styles.input}
@@ -89,12 +104,12 @@ export default function SignUp() {
         onChangeText={setConfirmPassword}
         secureTextEntry
         accessibilityLabel="Confirm Password Input"
-        accessibilityHint="Re-enter your password"
+        accessibilityHint="Re-enter your password to confirm"
       />
 
       <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={loading}>
         {loading ? (
-          <ActivityIndicator size="small" color="#0E415E" /> // Loading indicator
+          <ActivityIndicator size="small" color="#FFFFFF" /> // Loading indicator consistent with the button
         ) : (
           <Text style={styles.buttonText}>Sign Up</Text>
         )}
@@ -144,6 +159,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingVertical: 10,
     paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonText: {
     color: '#0E415E', // Dark blue text

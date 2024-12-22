@@ -13,10 +13,11 @@ export default function SignIn() {
   useEffect(() => {
     const checkLoggedIn = async () => {
       try {
-        // Check if the userToken exists in SecureStore
-        const userToken = await SecureStore.getItemAsync('userToken');
-        if (userToken) {
-          console.log('User is already logged in:', userToken);
+        // Check if idToken exists in SecureStore
+        const idToken = await SecureStore.getItemAsync('idToken');
+        const refreshToken = await SecureStore.getItemAsync('refreshToken');
+        if (idToken && refreshToken) {
+          console.log('User is already logged in.');
           router.replace('homepage'); // Adjust the path to your home page
         }
       } catch (error) {
@@ -39,8 +40,13 @@ export default function SignIn() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Store the user's UID securely
-      await SecureStore.setItemAsync('userToken', user.uid);
+      // Fetch idToken and refreshToken
+      const idToken = await user.getIdToken();
+      const refreshToken = user.refreshToken;
+
+      // Store tokens securely
+      await SecureStore.setItemAsync('idToken', idToken);
+      await SecureStore.setItemAsync('refreshToken', refreshToken);
       console.log('User signed in successfully:', user.uid);
 
       router.replace('homepage'); // Navigate to the home page
