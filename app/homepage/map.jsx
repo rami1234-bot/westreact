@@ -1,143 +1,170 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, ScrollView, Switch } from 'react-native';
-import MapView, { Marker, Callout } from 'react-native-maps';
-import { getDatabase, ref, onValue } from 'firebase/database';
-import { firebaseApp } from '../../firebase';
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+  Alert,
+  KeyboardAvoidingView,
+} from 'react-native';
 
-export default function MapScreen() {
-  const [checkpoints, setCheckpoints] = useState([]);
-  const [filteredCheckpoints, setFilteredCheckpoints] = useState([]);
-  const [isOpenChecked, setIsOpenChecked] = useState(true);
-  const [isClosedChecked, setIsClosedChecked] = useState(true);
+export default function ToDoList() {
+  const [tasks, setTasks] = useState([]);
+  const [newTask, setNewTask] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch data from Realtime Database
-  useEffect(() => {
-    const db = getDatabase(firebaseApp);
-    const checkpointsRef = ref(db, 'checkpoints');
+  // Add a new task
+  const addTask = () => {
+    if (newTask.trim().length === 0) {
+      Alert.alert('Error', 'Task cannot be empty.');
+      return;
+    }
+    setTasks([...tasks, { id: Date.now().toString(), text: newTask, completed: false }]);
+    setNewTask('');
+  };
 
-    onValue(checkpointsRef, (snapshot) => {
-      const data = snapshot.val();
-      const checkpointList = [];
+  // Toggle task completion
+  const toggleTaskCompletion = (id) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
 
-      for (let id in data) {
-        checkpointList.push({
-          id,
-          ...data[id],
-        });
-      }
+  // Delete a task
+  const deleteTask = (id) => {
+    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
+  };
 
-      setCheckpoints(checkpointList);
-      setFilteredCheckpoints(checkpointList);
-    });
-  }, []);
-
-  // Filter checkpoints based on toggles and search query
-  useEffect(() => {
-    const filtered = checkpoints.filter((checkpoint) => {
-      const matchesAvailability =
-        (isOpenChecked && checkpoint.availability === 'open') ||
-        (isClosedChecked && checkpoint.availability === 'closed');
-      const matchesSearchQuery = checkpoint.name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-
-      return matchesAvailability && matchesSearchQuery;
-    });
-
-    setFilteredCheckpoints(filtered);
-  }, [isOpenChecked, isClosedChecked, searchQuery, checkpoints]);
+  // Filtered tasks based on search query
+  const filteredTasks = tasks.filter((task) =>
+    task.text.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView style={styles.container} behavior="padding">
       {/* Search bar */}
       <TextInput
         style={styles.searchBar}
-        placeholder="Search by name"
+        placeholder="Search tasks"
         value={searchQuery}
         onChangeText={setSearchQuery}
       />
 
-      {/* Filter toggles */}
-      <ScrollView horizontal style={styles.filterContainer}>
-        <View style={styles.switchContainer}>
-          <Text>Open</Text>
-          <Switch value={isOpenChecked} onValueChange={setIsOpenChecked} />
-        </View>
+      {/* Task input */}
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.taskInput}
+          placeholder="Add a new task"
+          value={newTask}
+          onChangeText={setNewTask}
+        />
+        <TouchableOpacity style={styles.addButton} onPress={addTask}>
+          <Text style={styles.addButtonText}>Add</Text>
+        </TouchableOpacity>
+      </View>
 
-        <View style={styles.switchContainer}>
-          <Text>Closed</Text>
-          <Switch value={isClosedChecked} onValueChange={setIsClosedChecked} />
-        </View>
-      </ScrollView>
-
-      {/* Map */}
-      <MapView style={styles.map}>
-        {filteredCheckpoints.map((checkpoint) => (
-          <Marker
-            key={checkpoint.id}
-            coordinate={{
-              latitude: checkpoint.latitude,
-              longitude: checkpoint.longitude,
-            }}
-            pinColor={checkpoint.availability === 'open' ? '#FFD700' : 'red'}
-          >
-            <Callout>
-              <View>
-                <Text style={styles.title}>{checkpoint.name}</Text>
-                <Text>Availability: {checkpoint.availability}</Text>
-                <Text>Last Updated: {new Date(checkpoint.lastUpdated).toLocaleString()}</Text>
-              </View>
-            </Callout>
-          </Marker>
-        ))}
-      </MapView>
-    </View>
+      {/* Task list */}
+      <FlatList
+        data={filteredTasks}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.taskItem}>
+            <TouchableOpacity
+              style={[
+                styles.checkbox,
+                item.completed && { backgroundColor: '#009688' }, // Teal for completed tasks
+              ]}
+              onPress={() => toggleTaskCompletion(item.id)}
+            />
+            <Text
+              style={[
+                styles.taskText,
+                item.completed && { textDecorationLine: 'line-through', color: '#999' },
+              ]}
+            >
+              {item.text}
+            </Text>
+            <TouchableOpacity onPress={() => deleteTask(item.id)}>
+              <Text style={styles.deleteText}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  title: {
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  filterContainer: {
-
-    position: 'absolute',
-    top: 100, // Lower the filters from 100 to 150
-    left: 10,
-    right: 10,
-    zIndex: 10,
-    flexDirection: 'row',
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 10,
-  },
-  switchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 10,
+    flex: 1,
+    backgroundColor: '#E0F7FA', // Light blue background
+    padding: 20,
   },
   searchBar: {
-    position: 'absolute',
-    top: 50, // Also lower the search bar accordingly
-    left: 10,
-    right: 10,
     height: 40,
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 10,
     paddingLeft: 10,
     backgroundColor: 'white',
-    zIndex: 10,
+    marginBottom: 10,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  taskInput: {
+    flex: 1,
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingLeft: 10,
+    backgroundColor: 'white',
+  },
+  addButton: {
+    backgroundColor: '#009688', // Teal background
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginLeft: 10,
+  },
+  addButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  taskItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  checkbox: {
+    height: 20,
+    width: 20,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#009688', // Teal border for checkbox
+    marginRight: 10,
+  },
+  taskText: {
+    flex: 1,
+    fontSize: 16,
+  },
+  deleteText: {
+    color: '#F44336', // Red for delete text
+    fontWeight: 'bold',
   },
 });
-

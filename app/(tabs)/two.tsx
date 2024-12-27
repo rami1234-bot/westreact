@@ -1,20 +1,25 @@
 import React, { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator, Image } from 'react-native';
 import { Text, View } from '@/components/Themed'; // Adjust this import according to your project structure
-import { auth } from '../../firebase'; // Import the Firebase authentication instance
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import * as SecureStore from 'expo-secure-store';
-import { useRouter } from 'expo-router';
+import { Client, Account, ID } from 'react-native-appwrite'; // Import Appwrite SDK
+import { router, Router } from 'expo-router';
+// Initialize Appwrite client
+const client = new Client();
+client
+  .setEndpoint('https://cloud.appwrite.io/v1') // Your Appwrite endpoint
+  .setProject('676b38af0002477f6ae9'); // Your Project ID
+
+const account = new Account(client);
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState(''); // Add name field for registration
   const [loading, setLoading] = useState(false); // Loading state
-  const router = useRouter();
 
   const handleSignUp = async () => {
-    if (!email || !password || !confirmPassword) {
+    if (!email || !password || !confirmPassword || !name) {
       Alert.alert('Error', 'All fields are required.');
       return;
     }
@@ -39,27 +44,15 @@ export default function SignUp() {
     setLoading(true); // Set loading to true
 
     try {
-      // Create user with email and password using Firebase
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // If successful, store the user token and refresh token securely
-      const token = await user.getIdToken();
-      const refreshToken = user.refreshToken;
-      await SecureStore.setItemAsync('userToken', token);
-      await SecureStore.setItemAsync('refreshToken', refreshToken);
-
-      Alert.alert('Success', 'Registration successful!');
-      console.log('User created:', user);
-
-      // Navigate to the home page or another screen
-      router.replace('homepage'); // Adjust the path to your home page
+      // Create a new Appwrite user
+      const user = await account.create(ID.unique(), email, password, name);
+      Alert.alert('Success', `Welcome, ${user.name}! Your account has been created.`);
+      router.replace('/homepage/main');
     } catch (error) {
-      const errorMessage = error.message || 'Registration failed. Please try again.';
-      Alert.alert('Error', errorMessage);
-      console.error('Error:', error);
+      Alert.alert( 'Registration failed. Please try again.');
+      console.error('Sign-Up Error:', error);
     } finally {
-      setLoading(false); // Set loading to false after the attempt
+      setLoading(false); // Reset loading state
     }
   };
 
@@ -67,7 +60,7 @@ export default function SignUp() {
     <View style={styles.container}>
       {/* Add your logo image here */}
       <Image
-        source={require('../../images/westimg.jpg')} // Adjust the path to your logo image
+        source={require('../../images/lolo.png')} // Adjust the path to your logo image
         style={styles.logo}
         resizeMode="contain"
       />
@@ -77,8 +70,17 @@ export default function SignUp() {
 
       <TextInput
         style={styles.input}
+        placeholder="Name"
+        placeholderTextColor="#A0A0A0" // Teal placeholder text
+        value={name}
+        onChangeText={setName}
+        accessibilityLabel="Name Input"
+        accessibilityHint="Enter your full name"
+      />
+      <TextInput
+        style={styles.input}
         placeholder="Email"
-        placeholderTextColor="#FFFFFF" // White placeholder text
+        placeholderTextColor="#A0A0A0" // Teal placeholder text
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -89,7 +91,7 @@ export default function SignUp() {
       <TextInput
         style={styles.input}
         placeholder="Password"
-        placeholderTextColor="#FFFFFF" // White placeholder text
+        placeholderTextColor="#A0A0A0" // Teal placeholder text
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -99,7 +101,7 @@ export default function SignUp() {
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
-        placeholderTextColor="#FFFFFF" // White placeholder text
+        placeholderTextColor="#A0A0A0" // Teal placeholder text
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         secureTextEntry
@@ -122,40 +124,40 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-start', // Changed to flex-start to move everything to the top
-    backgroundColor: '#0E415E', // Dark blue background
+    justifyContent: 'flex-start',
+    backgroundColor: '#F0F8FF', // Light blue background
     padding: 16,
   },
   logo: {
-    width: 250, // Set width for the logo
-    height: 250, // Set height for the logo
-    marginBottom: -50, // Space between logo and title
+    width: 250,
+    height: 250,
+    marginBottom: -50,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#FEAD1C', // Gold title
+    color: '#008080', // Teal title
   },
   separator: {
     marginVertical: 30,
     height: 1,
     width: '80%',
-    backgroundColor: '#FFFFFF', // White separator line
+    backgroundColor: '#D3D3D3', // Light gray separator
   },
   input: {
     height: 50,
-    borderColor: '#FEAD1C', // Gold border
+    borderColor: '#008080', // Teal border
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 12,
     paddingHorizontal: 10,
-    width: '80%', // Adjusted input width
-    backgroundColor: '#0E415E', // Set background color to match the main container
-    color: '#FFFFFF', // White text color for input
+    width: '80%',
+    backgroundColor: '#FFFFFF', // White background
+    color: '#000000', // Black text
   },
   button: {
-    backgroundColor: '#FEAD1C', // Gold button
+    backgroundColor: '#008080', // Teal button
     borderRadius: 5,
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -163,7 +165,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonText: {
-    color: '#0E415E', // Dark blue text
+    color: '#FFFFFF', // White text on button
     fontWeight: 'bold',
     textAlign: 'center',
   },

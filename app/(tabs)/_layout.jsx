@@ -6,7 +6,6 @@ import { Pressable } from 'react-native';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -14,16 +13,18 @@ export default function TabLayout() {
   return (
     <>
       {/* Line separating the tab bar from the screens */}
-      <View style={{
-        height: 4, // Increased height for a thicker line
-        backgroundColor: '#FEAD1C', // Gold color for the line
-      }} />
+      <View
+        style={{
+          height: 4, // Increased height for a thicker line
+          backgroundColor: '#009688', // Teal color for the line
+        }}
+      />
 
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: '#FEAD1C', // Gold color for active icons
+          tabBarActiveTintColor: '#009688', // Teal color for active icons
           tabBarStyle: {
-            backgroundColor: '#0E415E', // Blue background for the tab bar
+            backgroundColor: '#E0F7FA', // Light blue background for the tab bar
             paddingBottom: 10, // Optional: Keep bottom padding if needed
             paddingTop: 20, // Increase top padding for more space above the tab bar
             height: 70, // Optional: Increase height of the tab bar for a more pronounced look

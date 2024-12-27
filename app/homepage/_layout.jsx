@@ -1,74 +1,48 @@
 import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
-import { Pressable, View } from 'react-native';
-
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
+import { Tabs } from 'expo-router';
+import { View } from 'react-native';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
-  const darkBlue = '#0E415E'; // Dark blue background
-  const yellow = '#FEAD1C'; // Yellow icon color
+  const bgColor = '#E0F7FA'; // Background color from the weather screen
+  const activeColor = '#009688'; // Accent color from the weather screen
+  const inactiveColor = '#555'; // Inactive icon color
+  const iconBgColor = 'white'; // White background for icons
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: yellow, // Set active icon color to yellow
+        tabBarActiveTintColor: activeColor,
+        tabBarInactiveTintColor: inactiveColor,
         tabBarStyle: {
-          backgroundColor: darkBlue, // Set the entire tab bar background to dark blue
-          height: 80, // Set a taller fixed height for the tab bar (increased thickness)
-          paddingBottom: 10, // Adjust bottom padding for better vertical positioning
+          backgroundColor: bgColor,
+          height: 80,
+          paddingBottom: 10,
         },
-        headerShown: false, // Hide headers for all screens
-      }}>
+        headerShown: false,
+      }}
+    >
       <Tabs.Screen
         name="main"
         options={{
-          tabBarIcon: ({ size }) => (
-            <View style={{
-              backgroundColor: darkBlue,
-              borderRadius: 25,
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: 50, // Icon size remains the same
-              width: 50, // Icon size remains the same
-              marginTop: 10, // Adjust the top margin to keep the icon vertically centered
-            }}>
-              <FontAwesome name="home" size={size} color={yellow} />
-            </View>
-          ),
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="checkpoints"
-        options={{
-          tabBarIcon: ({ size }) => (
-            <View style={{
-              backgroundColor: darkBlue,
-              borderRadius: 25,
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: 50,
-              width: 50,
-              marginTop: 10, // Adjust the top margin to keep the icon vertically centered
-            }}>
-              <FontAwesome name="map-marker" size={size} color={yellow} />
+          tabBarIcon: ({ size, focused }) => (
+            <View
+              style={{
+                backgroundColor: iconBgColor,
+                borderRadius: 25,
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: 50,
+                width: 50,
+                marginTop: 10,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: focused ? 0.3 : 0.1,
+                shadowRadius: 4,
+                elevation: 2,
+              }}
+            >
+              <FontAwesome name="home" size={size} color={focused ? activeColor : inactiveColor} />
             </View>
           ),
         }}
@@ -76,35 +50,24 @@ export default function TabLayout() {
       <Tabs.Screen
         name="map"
         options={{
-          tabBarIcon: ({ size }) => (
-            <View style={{
-              backgroundColor: darkBlue,
-              borderRadius: 25,
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: 50,
-              width: 50,
-              marginTop: 10, // Adjust the top margin to keep the icon vertically centered
-            }}>
-              <FontAwesome name="globe" size={size} color={yellow} />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          tabBarIcon: ({ size }) => (
-            <View style={{
-              backgroundColor: darkBlue,
-              borderRadius: 25,
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: 50,
-              width: 50,
-              marginTop: 10, // Adjust the top margin to keep the icon vertically centered
-            }}>
-              <FontAwesome name="cog" size={size} color={yellow} />
+          tabBarIcon: ({ size, focused }) => (
+            <View
+              style={{
+                backgroundColor: iconBgColor,
+                borderRadius: 25,
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: 50,
+                width: 50,
+                marginTop: 10,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: focused ? 0.3 : 0.1,
+                shadowRadius: 4,
+                elevation: 2,
+              }}
+            >
+              <FontAwesome name="list" size={size} color={focused ? activeColor : inactiveColor} />
             </View>
           ),
         }}
